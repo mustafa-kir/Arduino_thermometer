@@ -1,0 +1,43 @@
+#include <FaBoLCD_PCF8574.h>
+#include <Wire.h>
+#include <DHT.h>
+
+#define DHTPIN 2  // dht sensörleri tanımlama yapıyoruz. vepi değerini 2 olrak tanımlıyoruz.
+#define DHTTYPE DHT11 // dht türünü belirtiyoruz. 
+
+DHT dht(DHTPIN, DHTTYPE); // dht adında nesne oluşturuyoruz ve DHTPİN VE DHTTYPE adında özeliklerini barıdıran nesne tanımlaması yapıyoruz.
+
+FaBoLCD_PCF8574 lcd;  // lcd tanımlıyoruz.
+
+
+void setup() {
+  
+  lcd.begin(16,2); //lcd başlatıyoruz ve Lcd ekranın 16x2 olduğunu tanımlıyoruz.
+  delay(1000);// 1 saniye bekleme
+  lcd.print("Mustafa KIR"); // açlışta ad soyad ekrana yazdırma
+  lcd.setCursor(2,2); // imleçi 2 satır 2 sütüna getiriyoruz.
+  lcd.print("190101006"); // okul numaramı ekrana bastırıyoruz.
+  delay(5000); // bekleme fonksiyonu ile 5 saniye bekleme 
+  dht.begin(); // dht sıcaklık sensörünü başlatyoruz.
+
+}
+
+void loop() {
+
+  int temp = dht.readTemperature(); // readTemperature() fonksiyonu ile sıcaklık eğerini okuyup temp değişkenine atıyoruz.
+ 
+
+  lcd.clear(); // lcd ekranını temizliyoruz.
+
+  lcd.setCursor(1,0); // lcd ekranındaki imleçi 1 sütün kaydırıyoruz.
+  lcd.print("Sicaklik : "); // ekrana sıcaklık yazısını yazdırıyoruz.
+  lcd.print(temp); // ekrana temp değerini yazdırıyoruz.
+  lcd.print(" C"); // ekrana C yazdırıyoruz.
+
+  lcd.setCursor(3,1); // imleci 2 satır 2 sütün kaydırıyoruz.
+  lcd.print("MUSTAFA KIR"); // Mustafa Kır yazısını ekrana bastırıyoruz.
+
+  delay(1000); // bekleme fonksiyonu ile 1 saniye bekleme 
+
+
+}

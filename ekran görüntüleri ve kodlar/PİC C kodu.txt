@@ -1,0 +1,56 @@
+#include <16f877.h> // pic mikrodenetleyiciyi ttanımlaama yapıyoruz.
+#device ADC=10 // analogtan gelen değer ne ise onu 10 bittik değere dönüştürüyoruz. Yani gelen değer 0 ile 1023 arasında birdeğere dönüştürülür. 
+#use delay(clock=4000000) //
+#fuses XT,NOWDT,NOPUT,NOLVP,NOCPD,NOPROTECT,NODEBUG,NOBROWNOUT,NOWRT
+
+#use fast_io(a) // portA kullanıcağımızı belirtiyoruz
+#use fast_io(b) // portB kullanıcağımızı belirtiyoruz
+
+#define use_portb_lcd TRUE // Lcd tanımlıyoruz
+#include <lcd.c> // lcd kütüphanesini tanımlıyoruz.
+
+//Global değişkenler tanımı yapıyoruz.
+unsigned long int deger; 
+float gerilim,sicaklik;
+
+//Ana fonksiyon tanımı 
+void main()
+{
+   setup_psp(PSP_DISABLED);
+   setup_timer_1(T1_DISABLED);
+   setup_CCP1(CCP_OFF);
+   setup_CCP2(CCP_OFF);
+   
+   set_tris_a(0x20); // a portunun giriş portu olduğunu bildiriyoruz.
+   set_tris_b(0x00); //  b portunun da hepsini çıkış olduğunu tanımlıyoruz.
+   
+   lcd_init(); // lcd başlatma fonksiyonu
+   
+   setup_adc(adc_clock_div_32); // A/D biriminin mod ayarı kullanılacak frekans bildirilir.
+   setup_adc_ports(ALL_ANALOG); 
+   
+   set_adc_channel(4); // kanalı tanımlama yapıyoruz.  AN4 prortuna sıcaklık ölçer bağlı olduğundan ona bağlıyoruz.
+   delay_us(20); // Bekleme fonksiyonu
+   
+   printf(lcd_putc,"\fSicaklik ="); // Termometre ekranına yazdırama işlemi yapıyoruz. \f de ekranı temizliyor.
+   
+   while(true){
+      
+      deger=read_adc(); // Analog sinyal ijital veriye cevrilir ve degere atanır.
+      /* Okunan değeri ondalıklı ve derece cinsine cevirme işlemin matematiksel işlemi:
+         5V(en büyük değerimiz) değeri 1023 bölüyoruz çünkü ADC değeri 10 bitlik olduğundan buraadan sonuc 0.0048759 V olur
+         1000 mv = 1 V olduğundan 
+         0.0048759 V da 4.88759 olur.
+         0 mV = 1 derecedir
+         10 mv = 3 derecedir.
+         buradan denklem oluşturursak her mV'tu 10'a' bölüp + 2 eklersek değere ulaşmış oluruz.
+      */
+      gerilim=deger*4.88759;
+      sicaklik=(gerilim/10)+2; 
+      lcd_gotoxy(10,1); // lcd ekranını 1 satırda 10 birim kaydırıyoruz. 
+      printf(lcd_putc,"%f C",sicaklik);  // ekrana sicaklik değerini yazdırıyoruz. 
+      delay_ms(100);
+   
+   }
+   
+}

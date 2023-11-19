@@ -1,0 +1,57 @@
+#include <16f877.h> // pic mikrodenetleyiciyi ttanýmlaama yapýyoruz.
+#device ADC=10 // analogtan gelen deðer ne ise onu 10 bittik deðere dönüþtürüyoruz. Yani gelen deðer 0 ile 1023 arasýnda birdeðere dönüþtürülür. 
+#use delay(clock=4000000) //
+#fuses XT,NOWDT,NOPUT,NOLVP,NOCPD,NOPROTECT,NODEBUG,NOBROWNOUT,NOWRT
+
+#use fast_io(a) // portA kullanýcaðýmýzý belirtiyoruz
+#use fast_io(b) // portB kullanýcaðýmýzý belirtiyoruz
+
+#define use_portb_lcd TRUE // Lcd tanýmlýyoruz
+#include <lcd.c> // lcd kütüphanesini tanýmlýyoruz.
+
+//Global deðiþkenler tanýmý yapýyoruz.
+unsigned long int deger; 
+float gerilim,sicaklik;
+
+//Ana fonksiyon tanýmý 
+void main()
+{
+   setup_psp(PSP_DISABLED);
+   setup_timer_1(T1_DISABLED);
+   setup_CCP1(CCP_OFF);
+   setup_CCP2(CCP_OFF);
+   
+   set_tris_a(0x20); // a portunun giriþ portu olduðunu bildiriyoruz.
+   set_tris_b(0x00); //  b portunun da hepsini çýkýþ olduðunu tanýmlýyoruz.
+   
+   lcd_init(); // lcd baþlatma fonksiyonu
+   
+   setup_adc(adc_clock_div_32); // A/D biriminin mod ayarý kullanýlacak frekans bildirilir.
+   setup_adc_ports(ALL_ANALOG); 
+   
+   set_adc_channel(4); // kanalý tanýmlama yapýyoruz.  AN4 prortuna sýcaklýk ölçer baðlý olduðundan ona baðlýyoruz.
+   delay_us(20); // Bekleme fonksiyonu
+   
+   printf(lcd_putc,"\fSicaklik ="); // Termometre ekranýna yazdýrama iþlemi yapýyoruz. \f de ekraný temizliyor.
+   
+   while(true){
+      
+      deger=read_adc(); // Analog sinyal ijital veriye cevrilir ve degere atanýr.
+      /* Okunan deðeri ondalýklý ve derece cinsine cevirme iþlemin matematiksel iþlemi:
+         5V(en büyük deðerimiz) deðeri 1023 bölüyoruz çünkü ADC deðeri 10 bitlik olduðundan buraadan sonuc 0.0048759 V olur
+         1000 mv = 1 V olduðundan 
+         0.0048759 V da 4.88759 olur.
+         0 mV = 1 derecedir
+         10 mv = 3 derecedir.
+         buradan denklem oluþturursak her mV'tu 10'a' bölüp + 2 eklersek deðere ulaþmýþ oluruz.
+      */
+      gerilim=deger*4.88759;
+      sicaklik=(gerilim/10)+2; 
+      lcd_gotoxy(10,1); // lcd ekranýný 1 satýrda 10 birim kaydýrýyoruz. 
+      printf(lcd_putc,"%f C",sicaklik);  // ekrana sicaklik deðerini yazdýrýyoruz. 
+      delay_ms(100);
+   
+   }
+   
+}
+
